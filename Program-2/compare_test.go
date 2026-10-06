@@ -1,9 +1,8 @@
 package main
 
-import (
-	"testing"
-	"://github.com"
-)
+import "testing"
+import "github.com/stretchr/testify/assert"
+
 
 func TestMax(t *testing.T) {
 	assert.Equal(t, true, Max(9, 4))
