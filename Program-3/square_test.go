@@ -1,13 +1,32 @@
 package main
 
-import "testing"
-import "github.com/stretchr/testify/assert"
+import (
+	"math/rand"
+	"testing"
 
+	"github.com/stretchr/testify/assert"
+)
 
-func TestSquare(t *testing.T) {
-	assert.Equal(t, 25, Square(5))
+func TestShouldReturnSquareOfPositiveNumber(t *testing.T) {
+	randomNum := rand.Intn(100)
+	expected := randomNum * randomNum
+	actual := square(randomNum)
 
-	assert.Equal(t, 9, Square(-3))
+	assert.Equal(t, expected, actual)
+}
 
-	assert.Equal(t, 0, Square(0))
+func TestShouldReturnSquareOfNegativeNumber(t *testing.T) {
+	randomNum := -rand.Intn(100)
+	expected := randomNum * randomNum
+	actual := square(randomNum)
+
+	assert.Equal(t, expected, actual)
+}
+
+func TestShouldReturnSquareOfZero(t *testing.T) {
+	randomNum := 0
+	expected := 0
+	actual := square(randomNum)
+
+	assert.Equal(t, expected, actual)
 }

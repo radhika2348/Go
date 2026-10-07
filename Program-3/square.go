@@ -1,5 +1,5 @@
 package main
 
-func Square(x int) int {
+func square(x int) int {
 	return x * x
 }
