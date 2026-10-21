@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1001,
+    "customer": {
+      "name": "Ram",
+      "phone": "23243"
+    },
+    "items": [
+      {
+        "name": "shirt",
+        "quantity": 2,
+        "service_type": "Wash \u0026 Fold",
+        "unit_price": 2.5,
+        "total_price": 5
+      },
+      {
+        "name": "pants",
+        "quantity": 3,
+        "service_type": "Wash \u0026 Iron",
+        "unit_price": 4,
+        "total_price": 12
+      }
+    ],
+    "total_items": 5,
+    "total_price": 17,
+    "status": "Received"
+  },
+  {
+    "id": 1002,
+    "customer": {
+      "name": "sham",
+      "phone": "23434"
+    },
+    "items": [
+      {
+        "name": "blouse",
+        "quantity": 3,
+        "service_type": "Dry Cleaning",
+        "unit_price": 8,
+        "total_price": 24
+      }
+    ],
+    "total_items": 3,
+    "total_price": 24,
+    "status": "Washing"
+  }
+]
