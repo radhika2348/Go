@@ -7,8 +7,13 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"errors"
 )
 
+var(
+	ErrorOrderNotFound=errors.New("Invalid Order")
+	ErrInvalidOrderStatus=errors.New("Invalid status")
+)
 // Order status
 type statustype string
 
@@ -24,8 +29,10 @@ func validateStatus(status statustype) error {
 	case RECEIVED, WASHING, READY, COLLECTED:
 		return nil
 	default:
-		return fmt.Errorf("invalid status: %s", status)
+
+		return fmt.Errorf("invalid status: %w", ErrInvalidOrderStatus)
 	}
+	
 }
 
 // Laundry service
@@ -45,15 +52,15 @@ var serviceRates = map[serviceType]float64{
 
 // Customer
 type customer struct {
-	name  string
-	phone string
+	Name  string `json:"name"`
+	Phone string `json:"phone"`
 }
 
 func (c customer) validate() error {
-	if strings.TrimSpace(c.name) == "" {
+	if strings.TrimSpace(c.Name) == "" {
 		return fmt.Errorf("customer name is required")
 	}
-	if strings.TrimSpace(c.phone) == "" {
+	if strings.TrimSpace(c.Phone) == "" {
 		return fmt.Errorf("customer phone is required")
 	}
 	return nil
@@ -61,52 +68,52 @@ func (c customer) validate() error {
 
 // Laundry item
 type item struct {
-	name        string
-	quantity    int
-	serviceType serviceType
-	unitPrice   float64
-	totalPrice  float64
+		Name        string      `json:"name"`
+	Quantity    int         `json:"quantity"`
+	ServiceType serviceType `json:"service_type"`
+	UnitPrice   float64     `json:"unit_price"`
+	TotalPrice  float64     `json:"total_price"`
 }
 
 func (it item) calculatePrice() (item, error) {
-	if strings.TrimSpace(it.name) == "" {
+	if strings.TrimSpace(it.Name) == "" {
 		return item{}, fmt.Errorf("item name is required")
 	}
-	if it.quantity < 1 {
+	if it.Quantity < 1 {
 		return item{}, fmt.Errorf("quantity must be at least 1")
 	}
 
-	rate, ok := serviceRates[it.serviceType]
+	rate, ok := serviceRates[it.ServiceType]
 	if !ok {
 		return item{}, fmt.Errorf(
-			"unsupported service: %s", it.serviceType,
+			"unsupported service: %s", it.ServiceType,
 		)
 	}
 
-	it.unitPrice = rate
-	it.totalPrice = float64(it.quantity) * rate
+	it.UnitPrice = rate
+	it.TotalPrice = float64(it.Quantity) * rate
 	return it, nil
 }
 
 // Order
 type order struct {
-	id         int
-	customer   customer
-	items      []item
-	totalItems int
-	totalPrice float64
-	status     statustype
+	ID         int            `json:"id"`
+	Customer   customer `json:"customer"`
+	Items      []item   `json:"items"`
+	TotalItems int            `json:"total_items"`
+	TotalPrice float64        `json:"total_price"`
+	Status     statustype     `json:"status"`
 }
 
 func (o order) validate() error {
-	if err := o.customer.validate(); err != nil {
+	if err := o.Customer.validate(); err != nil {
 		return err
 	}
-	if len(o.items) == 0 {
+	if len(o.Items) == 0 {
 		return fmt.Errorf("order must contain at least one item")
 	}
 
-	for i, it := range o.items {
+	for i, it := range o.Items {
 		if _, err := it.calculatePrice(); err != nil {
 			return fmt.Errorf("item #%d: %w", i+1, err)
 		}
@@ -116,7 +123,7 @@ func (o order) validate() error {
 }
 
 func (o order) canTransitionTo(next statustype) bool {
-	switch o.status {
+	switch o.Status {
 	case RECEIVED:
 		return next == WASHING
 	case WASHING:
@@ -129,17 +136,18 @@ func (o order) canTransitionTo(next statustype) bool {
 }
 
 func (o *order) UpdateStatus(next statustype) error {
-	if err := validateStatus(next); err != nil {
-		return err
+	err:=validateStatus(next)
+	if errors.Is(err,ErrInvalidOrderStatus){
+		fmt.Println("Not valid ")
 	}
 	if !o.canTransitionTo(next) {
 		return fmt.Errorf(
 			"invalid status transition: %s -> %s",
-			o.status, next,
+			o.Status, next,
 		)
 	}
 
-	o.status = next
+	o.Status = next
 	return nil
 }
 
@@ -167,8 +175,8 @@ func (s *orderService) createOrder(
 	}
 
 	if err := (order{
-		customer: c,
-		items:    items,
+		Customer: c,
+		Items:    items,
 	}).validate(); err != nil {
 		return order{}, err
 	}
@@ -179,14 +187,14 @@ func (s *orderService) createOrder(
 	}
 
 	ord := order{
-		id:       1001,
-		customer: c,
-		status:   RECEIVED,
+		ID:       1001,
+		Customer: c,
+		Status:   RECEIVED,
 	}
 
 	for _, saved := range orders {
-		if saved.id >= ord.id {
-			ord.id = saved.id + 1
+		if saved.ID>= ord.ID{
+			ord.ID = saved.ID + 1
 		}
 	}
 
@@ -196,9 +204,9 @@ func (s *orderService) createOrder(
 			return order{}, err
 		}
 
-		ord.items = append(ord.items, priced)
-		ord.totalItems += priced.quantity
-		ord.totalPrice += priced.totalPrice
+		ord.Items = append(ord.Items, priced)
+		ord.TotalItems += priced.Quantity
+		ord.TotalPrice += priced.TotalPrice
 	}
 
 	if err := s.repo.Save(ord); err != nil {
@@ -231,9 +239,9 @@ func (s *orderService) updateOrderStatus(
 }
 
 // Read a complete line, including spaces
-func readLine(reader *bufio.Reader, prompt string) string {
+func readLine(reader *bufio.Reader, prompt string) (string) {
 	fmt.Print(prompt)
-	value, _ := reader.ReadString('\n')
+	value,_:= reader.ReadString('\n')
 	return strings.TrimSpace(value)
 }
 
@@ -246,21 +254,21 @@ func readInt(reader *bufio.Reader, prompt string) (int, error) {
 // Display order details
 func printOrder(ord order) {
 	fmt.Println("\n--- Order Summary ---")
-	fmt.Println("Order ID:", ord.id)
+	fmt.Println("Order ID:", ord.ID)
 	fmt.Printf("Customer: %s (%s)\n",
-		ord.customer.name, ord.customer.phone)
+		ord.Customer.Name, ord.Customer.Phone)
 
-	for _, it := range ord.items {
+	for _, it := range ord.Items {
 		fmt.Printf(
 			"%s: %d pieces (%s) = $%.2f\n",
-			it.name, it.quantity,
-			it.serviceType, it.totalPrice,
+			it.Name, it.Quantity,
+			it.ServiceType, it.TotalPrice,
 		)
 	}
 
-	fmt.Println("Status:", ord.status)
-	fmt.Println("Total Items:", ord.totalItems)
-	fmt.Printf("Total Bill: $%.2f\n", ord.totalPrice)
+	fmt.Println("Status:", ord.Status)
+	fmt.Println("Total Items:", ord.TotalItems)
+	fmt.Printf("Total Bill: $%.2f\n", ord.TotalPrice)
 }
 
 // Create order: terminal input
@@ -269,7 +277,8 @@ func createOrderInput(
 	svc *orderService,
 ) {
 	name := readLine(reader, "Enter customer name: ")
-	phone := readLine(reader, "Enter customer phone: ")
+	
+		phone := readLine(reader, "Enter customer phone: ")
 
 	count, err := readInt(
 		reader, "Enter number of item types: ",
@@ -285,11 +294,11 @@ func createOrderInput(
 		fmt.Printf("\nItem %d\n", i+1)
 
 		it := item{
-			name: readLine(reader, "Enter item name: "),
+			Name: readLine(reader, "Enter item name: "),
 		}
 
-		it.quantity, err = readInt(reader, "Enter quantity: ")
-		if err != nil || it.quantity < 1 {
+		it.Quantity, err = readInt(reader, "Enter quantity: ")
+		if err != nil || it.Quantity < 1 {
 			fmt.Println("Quantity must be at least 1")
 			return
 		}
@@ -306,11 +315,11 @@ func createOrderInput(
 
 		switch choice {
 		case 1:
-			it.serviceType = washAndFold
+			it.ServiceType = washAndFold
 		case 2:
-			it.serviceType = washAndIron
+			it.ServiceType = washAndIron
 		case 3:
-			it.serviceType = dryCleaning
+			it.ServiceType = dryCleaning
 		default:
 			fmt.Println("Invalid service choice")
 			return
@@ -320,8 +329,8 @@ func createOrderInput(
 	}
 
 	c := customer{
-		name:  name,
-		phone: phone,
+		Name:  name,
+		Phone: phone,
 	}
 
 	ord, err := svc.createOrder(c, items)
@@ -351,7 +360,7 @@ func updateOrderInput(
 		return
 	}
 
-	fmt.Println("Current status:", ord.status)
+	fmt.Println("Current status:", ord.Status)
 	fmt.Println("1. Washing")
 	fmt.Println("2. Ready")
 	fmt.Println("3. Collected")
@@ -392,25 +401,28 @@ func updateOrderInput(
 // Display orders by status
 func printOrdersByStatus(svc *orderService, status statustype) {
 	orders, err := svc.GetAllOrders()
-	if err != nil {
-		fmt.Println("Error:", err)
-	  return
-	}
-
+	 if err != nil {
+	 	fmt.Println("Error:", err)
+	   return
+	 }
+   
 	fmt.Printf("\n--- %s Orders ---\n", status)
 	found := false
 
 	for _, ord := range orders {
-		if ord.status == status {
+		if ord.Status == status {
 			fmt.Printf(
 				"Order ID: %d | Customer: %s\n",
-				ord.id, ord.customer.name,
+				ord.ID, ord.Customer.Name,
 			)
 			found = true
 		}
 	}
 
 	if !found {
+		 if errors.Is(err,ErrorOrderNotFound){
+		fmt.Println("Order doesn't exist")
+	}
 		fmt.Println("No orders found")
 	}
 }
@@ -426,7 +438,7 @@ func printDailyOrderStatus(svc *orderService) {
 	counts := map[statustype]int{}
 
 	for _, ord := range orders {
-		counts[ord.status]++
+		counts[ord.Status]++
 	}
 
 	fmt.Println("\n--- Order Status Counts ---")

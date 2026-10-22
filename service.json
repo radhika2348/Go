@@ -17,5 +17,24 @@
     "total_items": 2,
     "total_price": 8,
     "status": "Received"
+  },
+  {
+    "id": 1002,
+    "customer": {
+      "name": "\" \"",
+      "phone": "234"
+    },
+    "items": [
+      {
+        "name": "kurta",
+        "quantity": 2,
+        "service_type": "Wash \u0026 Fold",
+        "unit_price": 2.5,
+        "total_price": 5
+      }
+    ],
+    "total_items": 2,
+    "total_price": 5,
+    "status": "Received"
   }
 ]
