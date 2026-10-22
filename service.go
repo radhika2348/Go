@@ -376,6 +376,9 @@ func updateOrderInput(
 		return
 	}
 
+
+
+
 	updated, err := svc.updateOrderStatus(id, next)
 	if err != nil {
 		fmt.Println("Error updating status:", err)
@@ -387,11 +390,11 @@ func updateOrderInput(
 }
 
 // Display orders by status
-func (s *orderService)printOrdersByStatus(svc *orderService, status statustype) {
+func printOrdersByStatus(svc *orderService, status statustype) {
 	orders, err := svc.GetAllOrders()
 	if err != nil {
 		fmt.Println("Error:", err)
-		return
+	  return
 	}
 
 	fmt.Printf("\n--- %s Orders ---\n", status)
@@ -435,7 +438,7 @@ func printDailyOrderStatus(svc *orderService) {
 
 // Main menu
 func main() {
-	repo := NewFileOrderRepository("aaa.json")
+	repo := NewFileOrderRepository("service.json")
 	svc := NewLaundryService(repo)
 	reader := bufio.NewReader(os.Stdin)
 

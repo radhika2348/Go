@@ -1,0 +1,21 @@
+[
+  {
+    "id": 1001,
+    "customer": {
+      "name": "Seetha",
+      "phone": "43242222"
+    },
+    "items": [
+      {
+        "name": "Kurta",
+        "quantity": 2,
+        "service_type": "Wash \u0026 Iron",
+        "unit_price": 4,
+        "total_price": 8
+      }
+    ],
+    "total_items": 2,
+    "total_price": 8,
+    "status": "Received"
+  }
+]

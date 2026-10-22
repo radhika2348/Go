@@ -1,0 +1,26 @@
+{
+  "id": 1001,
+  "customer": {
+    "name": "Ram",
+    "phone": "555-0199"
+  },
+  "items": [
+    {
+      "name": "Shirts",
+      "quantity": 3,
+      "service_type": "Wash & Fold",
+      "unit_price": 2.5,
+      "total_price": 7.5
+    },
+    {
+      "name": "Coat",
+      "quantity": 1,
+      "service_type": "Dry Cleaning",
+      "unit_price": 8,
+      "total_price": 8
+    }
+  ],
+  "total_items": 4,
+  "total_price": 15.5,
+  "status": "Received"
+}

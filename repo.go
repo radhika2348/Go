@@ -73,6 +73,8 @@ func fromStoredOrder(o storedOrder) order {
 		customer: customer{
 			name:  o.Customer.Name,
 			phone: o.Customer.Phone,
+
+			
 		},
 		totalItems: o.TotalItems,
 		totalPrice: o.TotalPrice,
